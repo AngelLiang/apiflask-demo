@@ -1,5 +1,7 @@
-from peewee import CharField
+import datetime
+from peewee import CharField,ForeignKeyField,TextField,DateTimeField
 from playhouse.flask_utils import FlaskDB, PaginatedQuery
+from playhouse.shortcuts import model_to_dict
 
 from apiflask import APIFlask
 from apiflask import Schema, fields
@@ -32,8 +34,20 @@ class User(db_wrapper.Model):
     class Meta:
         table_name = 'user'
 
+    def to_dict(self):
+        return model_to_dict(self, backrefs=True)
+
+
+class Tweet(db_wrapper.Model):
+    user = ForeignKeyField(User, backref='tweets')
+    content = TextField()
+    timestamp = DateTimeField(default=datetime.datetime.now)
+
+    class Meta:
+        table_name = 'tweet'
 
 class UserOut(Schema):
+    id = fields.Integer()
     username = fields.String()
 
 
@@ -50,10 +64,25 @@ def get_user_list():
     object_list = paginated_query.get_object_list()
     print((count, object_list))
     return {
-        'code': 1,
+        'code': 0,
         'data': {
             'records': object_list
         }
+    }
+
+
+@app.get('/api/v1/user/<int:id>')
+@app.output(UserOut)
+def get_user(id):
+    instance = User.select().where(User.id==id).first()
+    print(instance.to_dict())
+    if instance:
+        return {
+            'code': 0,
+            'data': instance.to_dict()
+        }
+    return {
+        'code': 1
     }
 
 
