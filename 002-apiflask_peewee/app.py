@@ -1,10 +1,25 @@
 import datetime
 from peewee import CharField,ForeignKeyField,TextField,DateTimeField
-from playhouse.flask_utils import FlaskDB, PaginatedQuery
+from playhouse.flask_utils import PaginatedQuery
 from playhouse.shortcuts import model_to_dict
 
 from apiflask import APIFlask
 from apiflask import Schema, fields
+
+
+from playhouse.flask_utils import FlaskDB as _FlaskDB
+
+
+class FlaskDB(_FlaskDB):
+
+    def connect_db(self):
+        from flask import request
+        if self._excluded_routes and request.endpoint in self._excluded_routes:
+            return
+        if not self.database.is_closed():
+            return
+        self.database.connect()
+
 
 SECRET_KEY = 'secret-key'
 DATABASE = 'mysql://root:Bingo@123@192.168.42.8:3306/apiflask'
