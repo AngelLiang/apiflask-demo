@@ -1,6 +1,5 @@
 import datetime
 from peewee import CharField,ForeignKeyField,TextField,DateTimeField
-from playhouse.flask_utils import PaginatedQuery
 from playhouse.shortcuts import model_to_dict
 
 from apiflask import APIFlask
@@ -8,7 +7,7 @@ from apiflask import Schema, fields
 
 
 from playhouse.flask_utils import FlaskDB as _FlaskDB
-
+from pagination import PaginatedQuery
 
 class FlaskDB(_FlaskDB):
 
@@ -61,6 +60,7 @@ class Tweet(db_wrapper.Model):
     class Meta:
         table_name = 'tweet'
 
+
 class UserOut(Schema):
     id = fields.Integer()
     username = fields.String()
@@ -68,19 +68,19 @@ class UserOut(Schema):
 
 class UserListOut(Schema):
     records = fields.List(fields.Nested(UserOut))
+    total = fields.Integer()
 
 
 @app.get('/api/v1/user')
 @app.output(UserListOut)
 def get_user_list():
-    # query = User.select()
-    paginated_query = PaginatedQuery(User, 10,)
-    count = paginated_query.get_page_count()
+    paginated_query = PaginatedQuery(User)
     object_list = paginated_query.get_object_list()
-    print((count, object_list))
+    total = paginated_query.get_object_total()
     return {
         'code': 0,
         'data': {
+            'total': total,
             'records': object_list
         }
     }
