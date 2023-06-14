@@ -9,3 +9,11 @@ class BaseResponse(Schema):
 
 def make_response(code=0, msg='操作成功！', data=None):
     return {'code': code, 'msg': msg, 'data': data}
+
+
+def make_page_response(code=0, msg='操作成功！', records=None, total=None):
+    data = {
+        'records': records,
+        'total': total,
+    }
+    return make_response(code=code, msg=msg, data=data)

@@ -15,6 +15,7 @@ class FlaskDB(_FlaskDB):
 
 
 db_wrapper = FlaskDB()
+db = db_wrapper.database
 
 
 class BaseModel(db_wrapper.Model):
@@ -28,3 +29,7 @@ class BaseModel(db_wrapper.Model):
     def to_json(self):
         data = self.to_dict()
         return json.dumps(data, default=str)
+
+
+def init_app(app):
+    db_wrapper.init_app(app)
