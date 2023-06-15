@@ -9,7 +9,3 @@ class DecryptPasswordError(HTTPError):
 class UsernameOrPasswordError(HTTPError):
     status_code = 200
     message = '用户名或密码错误'
-    # extra_data = {
-    #     'error_code': '2323',
-    #     'error_docs': 'https://example.com/docs/missing'
-    # }

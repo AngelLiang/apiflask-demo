@@ -30,11 +30,10 @@ def delete_all_token(user_id):
 
 def user_login(username, encrypt_password):
     """用户登录服务"""
-    # try:
-    #     raw_password = decrypt_password(encrypt_password)
-    # except ValueError:
-    #     raise DecryptPasswordError()
-    raw_password = encrypt_password
+    try:
+        raw_password = decrypt_password(encrypt_password)
+    except ValueError:
+        raise DecryptPasswordError()
 
     serv = UserService()
     user = serv.get_user_by_username(username)

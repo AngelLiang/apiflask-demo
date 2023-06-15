@@ -17,3 +17,6 @@ error.init_app(app)
 from .api.ping import *  # noqa
 from .api.login import *  # noqa
 from .api.user import *  # noqa
+from .api.role import *  # noqa
+from .api.menu import *  # noqa
+from .api.current_user import *  # noqa

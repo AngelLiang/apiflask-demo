@@ -1,6 +1,7 @@
 from typing import List, Tuple, Dict
 from app.util.datetime import get_now
 from app.util.pagination import PaginatedQuery
+from app.error.common import NotFoundError
 
 
 class BaseService:
@@ -21,14 +22,38 @@ class BaseService:
         query = self.get_query()
         return query.where(self.model_class.id == pk).first()
 
+    def create(self, data: Dict):
+        from app.auth import get_current_user
+        data['created_at'] = get_now()
+        data['updated_at'] = get_now()
+        current_user = get_current_user()
+        if current_user:
+            data['created_by'] = get_current_user().username
+            data['updated_by'] = get_current_user().username
+        instance = self.model_class(**data)
+        instance.save()
+        return instance
+
     def update(self, pk, data: Dict):
+        from app.auth import get_current_user
         instance = self.get_or_none(pk)
         if not instance:
-            return None
-        # data['updated_at'] = get_now()
-        return instance.set_by_id(pk, data)
+            raise NotFoundError()
+        data['updated_at'] = get_now()
+        current_user = get_current_user()
+        if current_user:
+            data['updated_by'] = get_current_user().username
+        instance.set_by_id(pk, data)
+        return instance
 
     def delete(self, instance):
+        instance.deleted_at = get_now()
+        return instance.save()
+
+    def delete_by_id(self, pk):
+        instance = self.get_or_none(pk)
+        if not instance:
+            raise NotFoundError()
         instance.deleted_at = get_now()
         return instance.save()
 

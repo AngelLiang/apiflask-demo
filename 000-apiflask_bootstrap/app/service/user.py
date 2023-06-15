@@ -3,6 +3,8 @@ from app.model import RbacUser
 from app.util.password_hasher import make_password, check_password
 from app.service.base import BaseService
 from app.error import UsernameExistError
+from app.util.datetime import get_now
+from app.error.common import NotFoundError
 
 
 class UserService(BaseService):
@@ -19,6 +21,17 @@ class UserService(BaseService):
             raise UsernameExistError()
 
         role_ids = data.pop('role_ids', None)
+        data['created_at'] = get_now()
+        data['updated_at'] = get_now()
+        password = data['password']
+        data['password_hash'] = make_password(password)
+
+        from app.auth import get_current_user
+        current_user = get_current_user()
+        if current_user:
+            data['created_by'] = get_current_user().username
+            data['updated_by'] = get_current_user().username
+
         user = RbacUser(**data)
         return user.save()
         # created_by = auth.current_user.username
@@ -28,6 +41,18 @@ class UserService(BaseService):
         #     set_user_roles(user, role_ids)
         #     set_user_organs(user, organ_ids)
         #     add_user_creation_log(user, created_by)
+
+    def update(self, pk, data: Dict):
+        from app.auth import get_current_user
+        instance = self.get_or_none(pk)
+        if not instance:
+            raise NotFoundError()
+        data.pop('role_ids', None)
+        data['updated_at'] = get_now()
+        current_user = get_current_user()
+        if current_user:
+            data['updated_by'] = get_current_user().username
+        return instance.set_by_id(pk, data)
 
     def get_user_by_username(self, username):
         return RbacUser.get_or_none(RbacUser.username == username)
@@ -39,4 +64,5 @@ class UserService(BaseService):
     def change_password(self, user: RbacUser, new_password):
         """修改密码"""
         user.password_hash = make_password(new_password)
+        user.updated_at = get_now()
         return user.save()

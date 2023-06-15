@@ -3,7 +3,9 @@ from app.logger import logger
 from apiflask import HTTPError
 
 from app.service.token import is_expire_token, get_token_by_key
-from app.service.user import get_user_by_id
+from app.service.user import UserService
+from app.error.common import NotFoundError
+from app.error.user import UserDenyError
 
 auth = HTTPTokenAuth()
 
@@ -28,10 +30,13 @@ def verify_token(token: str):
             token.delete_instance()
             msg = '登录已经过期，请重新登录'
             raise HTTPError(401, msg)
-        user = get_user_by_id(token.user_id)
+        serv = UserService()
+        user = serv.get_or_none(token.user_id)
+        if not user:
+            raise NotFoundError()
         if not user.is_active:
             msg = '该帐号已经被禁用'
-            raise HTTPError(401, msg)
+            raise UserDenyError()
         return user
     return None
 
