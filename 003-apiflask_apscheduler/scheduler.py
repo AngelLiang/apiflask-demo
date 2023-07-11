@@ -16,7 +16,7 @@ def job1():
 
 
 # cron examples
-@scheduler.task('cron', id='do_job_2', minute='*')
+@scheduler.task('cron', id='do_job_2', minutes='*')
 def job2():
     print('Job 2 executed')
 
